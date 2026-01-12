@@ -11,10 +11,19 @@ export function ManageMatchesPage() {
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
   const [deletingMatch, setDeletingMatch] = useState<Match | null>(null);
   const [filter, setFilter] = useState<'all' | 'open' | 'locked' | 'finished'>('all');
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   useEffect(() => {
     loadMatches();
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenDropdown(null);
+    if (openDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openDropdown]);
 
   const loadMatches = async () => {
     try {
@@ -107,7 +116,7 @@ export function ManageMatchesPage() {
         </div>
 
         {/* Matches Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-lg shadow">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -179,33 +188,67 @@ export function ManageMatchesPage() {
                           <div className="text-sm text-gray-500">-</div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end gap-3">
-                          <button
-                            onClick={() => setEditingMatch(match)}
-                            className="text-blue-600 hover:text-blue-900"
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+                        <button
+                          id={`dropdown-btn-${match.id}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenDropdown(openDropdown === match.id ? null : match.id);
+                          }}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                          <svg
+                            className="w-5 h-5 text-gray-600"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
                           >
-                            Editar
-                          </button>
-                          <Link
-                            to={`/admin/matches/${match.id}/bets`}
-                            className="text-purple-600 hover:text-purple-900"
+                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                          </svg>
+                        </button>
+
+                        {openDropdown === match.id && (
+                          <div className="fixed mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+                            style={{
+                              top: `${(document.getElementById(`dropdown-btn-${match.id}`)?.getBoundingClientRect().bottom || 0) + window.scrollY}px`,
+                              right: `${window.innerWidth - (document.getElementById(`dropdown-btn-${match.id}`)?.getBoundingClientRect().right || 0)}px`
+                            }}
                           >
-                            Apostas
-                          </Link>
-                          <Link
-                            to={`/admin/matches/${match.id}/results`}
-                            className="text-green-600 hover:text-green-900"
-                          >
-                            Resultado
-                          </Link>
-                          <button
-                            onClick={() => setDeletingMatch(match)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Deletar
-                          </button>
-                        </div>
+                            <div className="py-1">
+                              <button
+                                onClick={() => {
+                                  setEditingMatch(match);
+                                  setOpenDropdown(null);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                              >
+                                ✏️ Editar
+                              </button>
+                              <Link
+                                to={`/admin/matches/${match.id}/bets`}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                onClick={() => setOpenDropdown(null)}
+                              >
+                                📊 Apostas
+                              </Link>
+                              <Link
+                                to={`/admin/matches/${match.id}/results`}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                onClick={() => setOpenDropdown(null)}
+                              >
+                                ⚽ Resultado
+                              </Link>
+                              <button
+                                onClick={() => {
+                                  setDeletingMatch(match);
+                                  setOpenDropdown(null);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center"
+                              >
+                                🗑️ Deletar
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );

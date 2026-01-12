@@ -11,10 +11,19 @@ export function ManageUsersPage() {
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editingUsername, setEditingUsername] = useState('');
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   useEffect(() => {
     loadUsers();
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenDropdown(null);
+    if (openDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openDropdown]);
 
   const loadUsers = async () => {
     try {
@@ -99,7 +108,7 @@ export function ManageUsersPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-lg shadow">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
@@ -172,50 +181,81 @@ export function ManageUsersPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center gap-2">
-                        {editingUserId === user.uid ? (
-                          <>
-                            <button
-                              onClick={() => handleSaveUsername(user.uid)}
-                              disabled={savingUserId === user.uid}
-                              className="text-green-600 hover:text-green-900 disabled:opacity-50"
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium relative">
+                      {editingUserId === user.uid ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleSaveUsername(user.uid)}
+                            disabled={savingUserId === user.uid}
+                            className="text-green-600 hover:text-green-900 disabled:opacity-50"
+                          >
+                            ✓ Salvar
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            disabled={savingUserId === user.uid}
+                            className="text-gray-600 hover:text-gray-900 disabled:opacity-50"
+                          >
+                            ✕ Cancelar
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            id={`dropdown-btn-${user.uid}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenDropdown(openDropdown === user.uid ? null : user.uid);
+                            }}
+                            disabled={savingUserId !== null}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
+                          >
+                            <svg
+                              className="w-5 h-5 text-gray-600"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
                             >
-                              Salvar
-                            </button>
-                            <button
-                              onClick={handleCancelEdit}
-                              disabled={savingUserId === user.uid}
-                              className="text-gray-600 hover:text-gray-900 disabled:opacity-50"
+                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                            </svg>
+                          </button>
+
+                          {openDropdown === user.uid && (
+                            <div className="fixed mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+                              style={{
+                                top: `${(document.getElementById(`dropdown-btn-${user.uid}`)?.getBoundingClientRect().bottom || 0) + window.scrollY}px`,
+                                right: `${window.innerWidth - (document.getElementById(`dropdown-btn-${user.uid}`)?.getBoundingClientRect().right || 0)}px`
+                              }}
                             >
-                              Cancelar
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => handleEditUsername(user)}
-                              disabled={savingUserId !== null}
-                              className="text-blue-600 hover:text-blue-900 disabled:opacity-50"
-                            >
-                              Editar Nome
-                            </button>
-                            {user.uid !== currentUser?.uid && (
-                              <button
-                                onClick={() => handleToggleAdmin(user.uid, user.isAdmin)}
-                                disabled={savingUserId !== null}
-                                className={`${
-                                  user.isAdmin
-                                    ? 'text-red-600 hover:text-red-900'
-                                    : 'text-green-600 hover:text-green-900'
-                                } disabled:opacity-50`}
-                              >
-                                {user.isAdmin ? 'Remover Admin' : 'Tornar Admin'}
-                              </button>
-                            )}
-                          </>
-                        )}
-                      </div>
+                              <div className="py-1">
+                                <button
+                                  onClick={() => {
+                                    handleEditUsername(user);
+                                    setOpenDropdown(null);
+                                  }}
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                  ✏️ Editar Nome
+                                </button>
+                                {user.uid !== currentUser?.uid && (
+                                  <button
+                                    onClick={() => {
+                                      handleToggleAdmin(user.uid, user.isAdmin);
+                                      setOpenDropdown(null);
+                                    }}
+                                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
+                                      user.isAdmin
+                                        ? 'text-red-600'
+                                        : 'text-green-600'
+                                    }`}
+                                  >
+                                    {user.isAdmin ? '🔒 Remover Admin' : '👑 Tornar Admin'}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}
