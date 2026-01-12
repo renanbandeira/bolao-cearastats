@@ -58,15 +58,10 @@ export function useMatches(filter: FilterType = 'all') {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const matchesData = snapshot.docs.map((doc) => {
-          const data = {
-            id: doc.id,
-            ...doc.data(),
-          };
-          console.log('useMatches - Mapped match:', data);
-          return data;
-        }) as Match[];
-        console.log('useMatches - Total matches:', matchesData.length);
+        const matchesData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Match[];
         setMatches(matchesData);
         setLoading(false);
       },

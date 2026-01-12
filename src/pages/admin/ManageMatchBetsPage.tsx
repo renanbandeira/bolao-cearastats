@@ -218,93 +218,82 @@ export function ManageMatchBetsPage() {
           </div>
         )}
 
-        {/* Bets Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Apostas ({bets.length})
-            </h2>
-          </div>
+        {/* Bets List */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Apostas ({bets.length})
+          </h2>
+        </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Usuário
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Placar Previsto
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Jogador Previsto
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pontos
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {bets.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-600">
-                      Nenhuma aposta ainda
-                    </td>
-                  </tr>
-                ) : (
-                  bets.map((bet) => (
-                    <tr key={bet.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          {bet.photoURL && (
-                            <img
-                              src={bet.photoURL}
-                              alt={bet.username}
-                              className="w-8 h-8 rounded-full mr-3"
-                            />
-                          )}
-                          <span className="text-sm font-medium text-gray-900">
-                            {bet.username}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
+        <div className="space-y-4">
+          {bets.length === 0 ? (
+            <div className="bg-white rounded-lg shadow p-12 text-center">
+              <p className="text-gray-600">Nenhuma aposta ainda</p>
+            </div>
+          ) : (
+            bets.map((bet) => (
+              <div
+                key={bet.id}
+                className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  {/* Left side: Bet info */}
+                  <div className="flex-1 min-w-0">
+                    {/* User info */}
+                    <div className="flex items-center gap-3 mb-3">
+                      {bet.photoURL && (
+                        <img
+                          src={bet.photoURL}
+                          alt={bet.username}
+                          className="w-10 h-10 rounded-full"
+                        />
+                      )}
+                      <span className="text-base font-semibold text-gray-900">
+                        {bet.username}
+                      </span>
+                    </div>
+
+                    {/* Bet details */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">Placar:</span>
                         <span className="text-lg font-bold text-gray-900">
                           {bet.predictedScore.ceara} x{' '}
                           {bet.predictedScore.opponent}
                         </span>
-                      </td>
-                      <td className="px-6 py-4">
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">Jogador:</span>
                         <span className="text-sm text-gray-900">
                           {bet.predictedPlayer || '-'}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        {bet.pointsEarned !== undefined ? (
+                      </div>
+
+                      {bet.pointsEarned !== undefined && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500">Pontos:</span>
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             {bet.pointsEarned} pts
                           </span>
-                        ) : (
-                          <span className="text-sm text-gray-500">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => handleEditClick(bet)}
-                          className="text-blue-600 hover:text-blue-900 font-medium text-sm"
-                        >
-                          Editar
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right side: Actions */}
+                  <div className="flex-shrink-0">
+                    <button
+                      onClick={() => handleEditClick(bet)}
+                      className="px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg font-medium text-sm transition-colors"
+                    >
+                      Editar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Edit Modal */}

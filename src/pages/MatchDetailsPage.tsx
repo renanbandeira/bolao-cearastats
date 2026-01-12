@@ -46,15 +46,11 @@ export function MatchDetailsPage() {
       setLoading(true);
       setError(null);
 
-      console.log('Loading match with ID:', matchId);
-
       const [matchData, betData, stats] = await Promise.all([
         getMatch(matchId),
         getUserBetForMatch(currentUser.uid, matchId),
         getMatchBetStatistics(matchId),
       ]);
-
-      console.log('Match data loaded:', matchData);
 
       if (!matchData) {
         setError(`Jogo não encontrado (ID: ${matchId})`);

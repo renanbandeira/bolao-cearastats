@@ -31,8 +31,6 @@ export async function createMatch(input: MatchInput): Promise<string> {
     throw new Error('Não há uma temporada ativa. Crie uma temporada antes de criar um jogo.');
   }
 
-  console.log('Creating match for season:', activeSeason.name, '(ID:', activeSeason.id, ')');
-
   const matchData = {
     opponent: input.opponent,
     matchDate: Timestamp.fromDate(input.matchDate),
@@ -44,7 +42,6 @@ export async function createMatch(input: MatchInput): Promise<string> {
   };
 
   const docRef = await addDoc(collection(db, 'matches'), matchData);
-  console.log('Match created with ID:', docRef.id, 'for season:', activeSeason.id);
   return docRef.id;
 }
 
@@ -52,15 +49,10 @@ export async function createMatch(input: MatchInput): Promise<string> {
  * Get a single match by ID
  */
 export async function getMatch(matchId: string): Promise<Match | null> {
-  console.log('getMatch - Fetching match with ID:', matchId);
-
   const docRef = doc(db, 'matches', matchId);
   const docSnap = await getDoc(docRef);
 
-  console.log('getMatch - Document exists:', docSnap.exists());
-
   if (!docSnap.exists()) {
-    console.log('getMatch - Match not found for ID:', matchId);
     return null;
   }
 
@@ -69,7 +61,6 @@ export async function getMatch(matchId: string): Promise<Match | null> {
     ...docSnap.data(),
   } as Match;
 
-  console.log('getMatch - Returning match:', matchData);
   return matchData;
 }
 

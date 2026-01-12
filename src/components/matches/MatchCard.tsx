@@ -12,8 +12,6 @@ export function MatchCard({ match, userHasBet }: MatchCardProps) {
   const isUpcoming = matchDate > now;
   const isPast = matchDate <= now;
 
-  console.log('MatchCard - Match ID:', match.id, 'Full match:', match);
-
   const getStatusBadge = () => {
     if (match.status === 'finished') {
       return (

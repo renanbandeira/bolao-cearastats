@@ -72,10 +72,10 @@ export function ManageMatchesPage() {
         </div>
 
         {/* Filter Buttons */}
-        <div className="mb-6 flex gap-2">
+        <div className="mb-6 grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
           <button
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
               filter === 'all'
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -85,7 +85,7 @@ export function ManageMatchesPage() {
           </button>
           <button
             onClick={() => setFilter('open')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
               filter === 'open'
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -95,7 +95,7 @@ export function ManageMatchesPage() {
           </button>
           <button
             onClick={() => setFilter('locked')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
               filter === 'locked'
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -105,7 +105,7 @@ export function ManageMatchesPage() {
           </button>
           <button
             onClick={() => setFilter('finished')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors ${
               filter === 'finished'
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'

@@ -56,7 +56,6 @@ export async function placeBet(input: BetInput): Promise<string> {
       totalBets: increment(1),
     });
     await batch.commit();
-    console.log('Match totalBets incremented successfully for match:', input.matchId);
   } catch (error) {
     console.error('Error updating match totalBets:', error);
     // Don't throw - bet was already created successfully
