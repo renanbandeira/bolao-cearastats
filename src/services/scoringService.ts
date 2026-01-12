@@ -30,7 +30,7 @@ export async function setMatchResultsAndCalculatePoints(
 
   const playerCounts = createCountMap(
     bets,
-    (bet) => bet.predictedPlayer || undefined
+    (bet) => bet.predictedPlayer ? bet.predictedPlayer.toLowerCase().trim() : undefined
   );
 
   // 4. Calculate points for each bet and prepare batch update
@@ -110,7 +110,7 @@ export async function recalculateMatchPoints(matchId: string): Promise<void> {
 
   const playerCounts = createCountMap(
     bets,
-    (bet) => bet.predictedPlayer || undefined
+    (bet) => bet.predictedPlayer ? bet.predictedPlayer.toLowerCase().trim() : undefined
   );
 
   // 4. Calculate new points and track the difference for each user

@@ -358,7 +358,7 @@ export function MatchDetailsPage() {
                   disabled={submitting}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Este jogador pode ganhar pontos tanto por gols quanto por assistências!
+                  Este jogador pode ganhar pontos tanto por gols quanto por assistências! (Não importa maiúsculas/minúsculas)
                 </p>
               </div>
 

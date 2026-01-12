@@ -67,11 +67,17 @@ export function calculatePoints(
     points += 1;
   }
 
-  // 2. Check player prediction
+  // 2. Check player prediction (case insensitive)
   if (bet.predictedPlayer && (result.actualScorers || result.actualAssists)) {
-    const playerScored = result.actualScorers?.includes(bet.predictedPlayer);
-    const playerAssisted = result.actualAssists?.includes(bet.predictedPlayer);
-    const isOnlyOne = playerCounts.get(bet.predictedPlayer) === 1;
+    const predictedPlayerLower = bet.predictedPlayer.toLowerCase().trim();
+
+    const playerScored = result.actualScorers?.some(
+      scorer => scorer.toLowerCase().trim() === predictedPlayerLower
+    );
+    const playerAssisted = result.actualAssists?.some(
+      assist => assist.toLowerCase().trim() === predictedPlayerLower
+    );
+    const isOnlyOne = playerCounts.get(predictedPlayerLower) === 1;
 
     if (playerScored) {
       if (isOnlyOne) {

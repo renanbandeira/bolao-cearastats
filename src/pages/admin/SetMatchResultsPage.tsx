@@ -255,7 +255,7 @@ export function SetMatchResultsPage() {
                       disabled={submitting}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Separe os nomes por vírgula. Deixe em branco se não houve gols.
+                      Separe os nomes por vírgula. Deixe em branco se não houve gols. (Não importa maiúsculas/minúsculas)
                     </p>
                   </div>
 
@@ -278,7 +278,7 @@ export function SetMatchResultsPage() {
                       disabled={submitting}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Separe os nomes por vírgula. Deixe em branco se não houve assistências.
+                      Separe os nomes por vírgula. Deixe em branco se não houve assistências. (Não importa maiúsculas/minúsculas)
                     </p>
                   </div>
                 </div>
