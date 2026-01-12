@@ -84,6 +84,11 @@ export function ManageUsersPage() {
     setEditingUsername('');
   };
 
+  const getFirstTwoNames = (fullName: string): string => {
+    const names = fullName.trim().split(' ');
+    return names.slice(0, 2).join(' ');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -117,15 +122,6 @@ export function ManageUsersPage() {
                     Usuário
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pontos
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Admin
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
@@ -152,34 +148,29 @@ export function ManageUsersPage() {
                               disabled={savingUserId === user.uid}
                             />
                           ) : (
-                            <div className="text-sm font-medium text-gray-900">
-                              {user.username}
-                            </div>
-                          )}
-                          {user.uid === currentUser?.uid && (
-                            <div className="text-xs text-gray-500">(Você)</div>
+                            <>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {getFirstTwoNames(user.username)}
+                                </span>
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  {user.totalPoints} pts
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                {user.uid === currentUser?.uid && (
+                                  <span className="text-xs text-gray-500">(Você)</span>
+                                )}
+                                {user.isAdmin && (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    Admin
+                                  </span>
+                                )}
+                              </div>
+                            </>
                           )}
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{user.email}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {user.totalPoints}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {user.isAdmin ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Admin
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          Usuário
-                        </span>
-                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium relative">
                       {editingUserId === user.uid ? (
