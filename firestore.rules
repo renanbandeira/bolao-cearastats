@@ -79,7 +79,7 @@ service cloud.firestore {
                         request.resource.data.predictedScore.opponent;
 
       // Users can update their own bets if match is still open
-      // Admins can always update (to set points after match)
+      // Admins can always update any bet field (to set points after match or edit user bets)
       allow update: if isAdmin() ||
                       (isAuthenticated() &&
                        resource.data.userId == request.auth.uid &&

@@ -188,6 +188,12 @@ export function ManageMatchesPage() {
                             Editar
                           </button>
                           <Link
+                            to={`/admin/matches/${match.id}/bets`}
+                            className="text-purple-600 hover:text-purple-900"
+                          >
+                            Apostas
+                          </Link>
+                          <Link
                             to={`/admin/matches/${match.id}/results`}
                             className="text-green-600 hover:text-green-900"
                           >

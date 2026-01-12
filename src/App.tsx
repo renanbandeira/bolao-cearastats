@@ -10,6 +10,7 @@ import { MatchDetailsPage } from './pages/MatchDetailsPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { CreateMatchPage } from './pages/admin/CreateMatchPage';
 import { ManageMatchesPage } from './pages/admin/ManageMatchesPage';
+import { ManageMatchBetsPage } from './pages/admin/ManageMatchBetsPage';
 import { ManageSeasonsPage } from './pages/admin/ManageSeasonsPage';
 import { ManageUsersPage } from './pages/admin/ManageUsersPage';
 import { SetMatchResultsPage } from './pages/admin/SetMatchResultsPage';
@@ -38,9 +39,10 @@ function App() {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/create-match" element={<CreateMatchPage />} />
               <Route path="/admin/matches" element={<ManageMatchesPage />} />
+              <Route path="/admin/matches/:matchId/bets" element={<ManageMatchBetsPage />} />
+              <Route path="/admin/matches/:matchId/results" element={<SetMatchResultsPage />} />
               <Route path="/admin/users" element={<ManageUsersPage />} />
               <Route path="/admin/seasons" element={<ManageSeasonsPage />} />
-              <Route path="/admin/matches/:matchId/results" element={<SetMatchResultsPage />} />
             </Route>
           </Route>
 
