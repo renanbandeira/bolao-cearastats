@@ -49,12 +49,19 @@ export async function placeBet(input: BetInput): Promise<string> {
   const docRef = await addDoc(collection(db, 'bets'), betData);
 
   // Update match totalBets count
-  const matchRef = doc(db, 'matches', input.matchId);
-  const batch = writeBatch(db);
-  batch.update(matchRef, {
-    totalBets: increment(1),
-  });
-  await batch.commit();
+  try {
+    const matchRef = doc(db, 'matches', input.matchId);
+    const batch = writeBatch(db);
+    batch.update(matchRef, {
+      totalBets: increment(1),
+    });
+    await batch.commit();
+    console.log('Match totalBets incremented successfully for match:', input.matchId);
+  } catch (error) {
+    console.error('Error updating match totalBets:', error);
+    // Don't throw - bet was already created successfully
+    // This is a denormalization counter, not critical
+  }
 
   return docRef.id;
 }

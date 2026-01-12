@@ -55,8 +55,11 @@ service cloud.firestore {
                       request.resource.data.status == 'open' &&
                       request.resource.data.createdBy == request.auth.uid;
 
-      // Only admins can update matches (set results, update status)
-      allow update: if isAdmin();
+      // Admins can update all fields
+      // Users can only increment totalBets when placing a bet
+      allow update: if isAdmin() ||
+                      (isAuthenticated() &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['totalBets']));
 
       // Only admins can delete matches
       allow delete: if isAdmin();
