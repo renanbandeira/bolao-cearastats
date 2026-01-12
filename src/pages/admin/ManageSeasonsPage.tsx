@@ -86,9 +86,9 @@ export function ManageSeasonsPage() {
       await endSeason(seasonId, finalRankings);
 
       await loadSeasons();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error ending season:', err);
-      setError('Erro ao encerrar temporada');
+      setError(err.message || 'Erro ao encerrar temporada');
     } finally {
       setEndingSeasonId(null);
     }
@@ -138,13 +138,20 @@ export function ManageSeasonsPage() {
         {/* Create Season Button/Form */}
         <div className="mb-6">
           {!showCreateForm ? (
-            <button
-              onClick={() => setShowCreateForm(true)}
-              disabled={!!activeSeason}
-              className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-            >
-              {activeSeason ? 'Já existe uma temporada ativa' : 'Criar Nova Temporada'}
-            </button>
+            <div>
+              <button
+                onClick={() => setShowCreateForm(true)}
+                disabled={!!activeSeason}
+                className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                {activeSeason ? 'Já existe uma temporada ativa' : 'Criar Nova Temporada'}
+              </button>
+              {activeSeason && (
+                <p className="text-sm text-gray-600 mt-2">
+                  Temporada ativa: <strong>{activeSeason.name}</strong> (encerre ou delete antes de criar uma nova)
+                </p>
+              )}
+            </div>
           ) : (
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">

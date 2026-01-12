@@ -23,9 +23,12 @@ export async function createSeason(input: SeasonInput): Promise<string> {
   if (!auth.currentUser) throw new Error('User must be authenticated');
 
   // Check if there's already an active season
+  console.log('Checking for active season...');
   const activeSeason = await getActiveSeason();
+  console.log('Active season found:', activeSeason);
+
   if (activeSeason) {
-    throw new Error('There is already an active season. End it before creating a new one.');
+    throw new Error(`There is already an active season: ${activeSeason.name} (ID: ${activeSeason.id}). End or delete it before creating a new one.`);
   }
 
   const seasonData = {
@@ -36,7 +39,9 @@ export async function createSeason(input: SeasonInput): Promise<string> {
     createdAt: serverTimestamp(),
   };
 
+  console.log('Creating new season:', seasonData);
   const docRef = await addDoc(collection(db, 'seasons'), seasonData);
+  console.log('Season created with ID:', docRef.id);
   return docRef.id;
 }
 
@@ -67,10 +72,17 @@ export async function getAllSeasons(): Promise<Season[]> {
   const q = query(collection(db, 'seasons'), orderBy('startDate', 'desc'));
   const snapshot = await getDocs(q);
 
-  return snapshot.docs.map((doc) => ({
+  const seasons = snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
   })) as Season[];
+
+  console.log('getAllSeasons found', seasons.length, 'seasons:');
+  seasons.forEach(s => {
+    console.log(`  - ${s.name} (${s.id}): status=${s.status}`);
+  });
+
+  return seasons;
 }
 
 /**
@@ -82,6 +94,8 @@ export async function endSeason(
 ): Promise<void> {
   if (!auth.currentUser) throw new Error('User must be authenticated');
 
+  console.log('Ending season:', seasonId);
+
   // 1. Update season status and store final rankings
   const seasonRef = doc(db, 'seasons', seasonId);
   await updateDoc(seasonRef, {
@@ -90,20 +104,42 @@ export async function endSeason(
     finalRankings,
   });
 
+  console.log('Season status updated, now resetting user points...');
+
   // 2. Reset all user totalPoints to 0 for the new season
   const usersSnapshot = await getDocs(collection(db, 'users'));
 
-  if (!usersSnapshot.empty) {
-    const batch = writeBatch(db);
+  console.log('Found', usersSnapshot.docs.length, 'users to reset');
 
-    for (const userDoc of usersSnapshot.docs) {
-      batch.update(doc(db, 'users', userDoc.id), {
-        totalPoints: 0,
-        lastUpdated: serverTimestamp(),
-      });
+  if (!usersSnapshot.empty) {
+    // Process in batches (Firestore batch limit is 500 operations)
+    const batchSize = 500;
+    const users = usersSnapshot.docs;
+
+    for (let i = 0; i < users.length; i += batchSize) {
+      const batch = writeBatch(db);
+      const batchUsers = users.slice(i, i + batchSize);
+
+      for (const userDoc of batchUsers) {
+        console.log('Resetting points for user:', userDoc.id);
+        const userRef = doc(db, 'users', userDoc.id);
+        batch.update(userRef, {
+          totalPoints: 0,
+          lastUpdated: serverTimestamp(),
+        });
+      }
+
+      console.log(`Committing batch ${Math.floor(i / batchSize) + 1}...`);
+      try {
+        await batch.commit();
+        console.log(`Batch ${Math.floor(i / batchSize) + 1} committed successfully`);
+      } catch (error) {
+        console.error('Error resetting user points in batch:', error);
+        throw new Error('Failed to reset user points: ' + (error as Error).message);
+      }
     }
 
-    await batch.commit();
+    console.log('All user points reset successfully');
   }
 }
 
@@ -115,14 +151,20 @@ export async function endSeason(
 export async function deleteSeason(seasonId: string): Promise<void> {
   if (!auth.currentUser) throw new Error('User must be authenticated');
 
+  console.log('Deleting season:', seasonId);
+
   // 1. Get all matches for this season
   const matches = await getMatchesBySeason(seasonId);
+  console.log('Found', matches.length, 'matches to delete');
 
   // 2. Delete each match (which will cascade delete bets and recalculate points)
   for (const match of matches) {
+    console.log('Deleting match:', match.id);
     await deleteMatch(match.id);
   }
 
   // 3. Delete the season
+  console.log('Deleting season document:', seasonId);
   await deleteDoc(doc(db, 'seasons', seasonId));
+  console.log('Season deleted successfully');
 }
