@@ -15,6 +15,7 @@ export function ManageSeasonsPage() {
   });
   const [endingSeasonId, setEndingSeasonId] = useState<string | null>(null);
   const [deletingSeason, setDeletingSeason] = useState<Season | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadSeasons();
@@ -95,7 +96,8 @@ export function ManageSeasonsPage() {
 
   const handleDeleteSeason = async (seasonId: string) => {
     try {
-      setLoading(true);
+      setIsDeleting(true);
+      setError(null);
       await deleteSeason(seasonId);
       await loadSeasons();
       setDeletingSeason(null);
@@ -103,7 +105,7 @@ export function ManageSeasonsPage() {
       console.error('Error deleting season:', err);
       setError('Erro ao deletar temporada');
     } finally {
-      setLoading(false);
+      setIsDeleting(false);
     }
   };
 
@@ -308,6 +310,7 @@ export function ManageSeasonsPage() {
             season={deletingSeason}
             onClose={() => setDeletingSeason(null)}
             onConfirm={() => handleDeleteSeason(deletingSeason.id)}
+            isDeleting={isDeleting}
           />
         )}
       </div>
@@ -319,11 +322,12 @@ interface DeleteSeasonModalProps {
   season: Season;
   onClose: () => void;
   onConfirm: () => void;
+  isDeleting: boolean;
 }
 
-function DeleteSeasonModal({ season, onClose, onConfirm }: DeleteSeasonModalProps) {
+function DeleteSeasonModal({ season, onClose, onConfirm, isDeleting }: DeleteSeasonModalProps) {
   const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && !isDeleting) {
       onClose();
     }
   };
@@ -355,15 +359,17 @@ function DeleteSeasonModal({ season, onClose, onConfirm }: DeleteSeasonModalProp
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancelar
               </button>
               <button
                 onClick={onConfirm}
-                className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                disabled={isDeleting}
+                className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Deletar
+                {isDeleting ? 'Deletando...' : 'Deletar'}
               </button>
             </div>
           </div>
