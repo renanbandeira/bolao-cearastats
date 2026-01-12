@@ -48,9 +48,9 @@ export function CreateMatchPage() {
 
       // Redirect to admin dashboard
       navigate('/admin', { replace: true });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error creating match:', err);
-      setError('Erro ao criar jogo. Tente novamente.');
+      setError(err.message || 'Erro ao criar jogo. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -157,6 +157,7 @@ export function CreateMatchPage() {
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="font-medium text-blue-900 mb-2">ℹ️ Informações</h3>
           <ul className="text-sm text-blue-800 space-y-1">
+            <li>• O jogo será automaticamente associado à temporada ativa</li>
             <li>• O jogo será criado com status "aberto" para apostas</li>
             <li>• Usuários poderão apostar até o horário do jogo</li>
             <li>• Após o jogo, você poderá definir o resultado final</li>

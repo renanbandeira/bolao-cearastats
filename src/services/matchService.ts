@@ -15,13 +15,23 @@ import {
   increment,
 } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
+import { getActiveSeason } from './seasonService';
 import type { Match, MatchInput, MatchResults, MatchStatus } from '../types';
 
 /**
  * Create a new match pool
+ * Automatically associates the match with the active season
  */
 export async function createMatch(input: MatchInput): Promise<string> {
   if (!auth.currentUser) throw new Error('User must be authenticated');
+
+  // Get the active season
+  const activeSeason = await getActiveSeason();
+  if (!activeSeason) {
+    throw new Error('Não há uma temporada ativa. Crie uma temporada antes de criar um jogo.');
+  }
+
+  console.log('Creating match for season:', activeSeason.name, '(ID:', activeSeason.id, ')');
 
   const matchData = {
     opponent: input.opponent,
@@ -30,9 +40,11 @@ export async function createMatch(input: MatchInput): Promise<string> {
     createdBy: auth.currentUser.uid,
     createdAt: serverTimestamp(),
     totalBets: 0,
+    seasonId: activeSeason.id,
   };
 
   const docRef = await addDoc(collection(db, 'matches'), matchData);
+  console.log('Match created with ID:', docRef.id, 'for season:', activeSeason.id);
   return docRef.id;
 }
 
