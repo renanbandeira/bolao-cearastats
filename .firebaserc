@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "bolao": "bolao-cearastats",
+    "default": "bolao-cearastats"
+  },
+  "targets": {},
+  "etags": {}
+}
