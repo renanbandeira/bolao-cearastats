@@ -6,10 +6,8 @@ import {
   query,
   orderBy,
   serverTimestamp,
-  deleteField,
   deleteDoc,
   where,
-  writeBatch,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { User, UserRanking } from '../types';
