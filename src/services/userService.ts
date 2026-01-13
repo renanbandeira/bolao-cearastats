@@ -86,3 +86,18 @@ export async function updateUserPoints(
     lastUpdated: serverTimestamp(),
   });
 }
+
+/**
+ * Delete a user (admin only)
+ * WARNING: This will NOT delete the user's bets, which will remain in the system
+ */
+export async function deleteUser(userId: string): Promise<void> {
+  const docRef = doc(db, 'users', userId);
+  await updateDoc(docRef, {
+    username: '[Usuário Deletado]',
+    isAdmin: false,
+    totalPoints: 0,
+    photoURL: null,
+    lastUpdated: serverTimestamp(),
+  });
+}

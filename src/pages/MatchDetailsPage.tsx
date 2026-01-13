@@ -3,8 +3,15 @@ import type { FormEvent } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getMatch } from '../services/matchService';
-import { placeBet, updateBet, getUserBetForMatch, getMatchBetStatistics } from '../services/betService';
+import { placeBet, updateBet, getUserBetForMatch, getMatchBetStatistics, getMatchBets } from '../services/betService';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import type { Match, Bet } from '../types';
+
+interface BetWithUser extends Bet {
+  username: string;
+  photoURL?: string;
+}
 
 export function MatchDetailsPage() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -23,6 +30,9 @@ export function MatchDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showAllBetsModal, setShowAllBetsModal] = useState(false);
+  const [allBets, setAllBets] = useState<BetWithUser[]>([]);
+  const [loadingBets, setLoadingBets] = useState(false);
 
   const [formData, setFormData] = useState({
     cearaScore: '',
@@ -144,6 +154,51 @@ export function MatchDetailsPage() {
       predictedPlayer: '',
     });
     setError(null);
+  };
+
+  const loadAllBets = async () => {
+    if (!matchId) return;
+
+    try {
+      setLoadingBets(true);
+
+      // Load bets
+      const betsData = await getMatchBets(matchId);
+
+      // Load all users to get their info
+      const usersSnapshot = await getDocs(collection(db, 'users'));
+      const usersMap = new Map<string, { username: string; photoURL?: string }>();
+      usersSnapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        usersMap.set(doc.id, {
+          username: data.username,
+          photoURL: data.photoURL,
+        });
+      });
+
+      // Combine bets with user info
+      const betsWithUsers: BetWithUser[] = betsData.map((bet) => {
+        const user = usersMap.get(bet.userId);
+        return {
+          ...bet,
+          username: user?.username || 'Usuário desconhecido',
+          photoURL: user?.photoURL,
+        };
+      });
+
+      setAllBets(betsWithUsers);
+      setShowAllBetsModal(true);
+    } catch (err) {
+      console.error('Error loading all bets:', err);
+      setError('Erro ao carregar apostas');
+    } finally {
+      setLoadingBets(false);
+    }
+  };
+
+  const getFirstTwoNames = (fullName: string): string => {
+    const names = fullName.trim().split(' ');
+    return names.slice(0, 2).join(' ');
   };
 
   if (loading) {
@@ -395,7 +450,16 @@ export function MatchDetailsPage() {
         {/* Statistics */}
         {statistics && statistics.totalBets > 0 && (
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Estatísticas das Apostas</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">Estatísticas das Apostas</h2>
+              <button
+                onClick={loadAllBets}
+                disabled={loadingBets}
+                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                {loadingBets ? 'Carregando...' : 'Ver Todas as Apostas'}
+              </button>
+            </div>
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-gray-600">Total de apostas:</p>
@@ -430,6 +494,96 @@ export function MatchDetailsPage() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* All Bets Modal */}
+        {showAllBetsModal && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowAllBetsModal(false);
+              }
+            }}
+          >
+            <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Todas as Apostas ({allBets.length})
+                </h3>
+                <button
+                  onClick={() => setShowAllBetsModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="p-6">
+                {allBets.length === 0 ? (
+                  <p className="text-center text-gray-600 py-8">Nenhuma aposta ainda</p>
+                ) : (
+                  <div className="space-y-3">
+                    {allBets.map((bet) => (
+                      <div
+                        key={bet.id}
+                        className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          {/* User info */}
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            {bet.photoURL && (
+                              <img
+                                src={bet.photoURL}
+                                alt={bet.username}
+                                className="w-10 h-10 rounded-full flex-shrink-0"
+                              />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-gray-900 truncate">
+                                {getFirstTwoNames(bet.username)}
+                              </p>
+                              {bet.userId === currentUser?.uid && (
+                                <p className="text-xs text-blue-600">Você</p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Bet details */}
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-lg font-bold text-gray-900">
+                              {bet.predictedScore.ceara} x {bet.predictedScore.opponent}
+                            </p>
+                            {bet.predictedPlayer && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                Jogador: {bet.predictedPlayer}
+                              </p>
+                            )}
+                            {bet.pointsEarned !== undefined && (
+                              <p className="text-xs text-green-600 font-medium mt-1">
+                                {bet.pointsEarned} pts
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
+                <button
+                  onClick={() => setShowAllBetsModal(false)}
+                  className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                >
+                  Fechar
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { getAllUsers, toggleAdminStatus, updateUserUsername, updateUserPoints } from '../../services/userService';
+import { getAllUsers, toggleAdminStatus, updateUserUsername, updateUserPoints, deleteUser } from '../../services/userService';
 import { useAuth } from '../../contexts/AuthContext';
 import type { User } from '../../types';
 
@@ -15,6 +15,8 @@ export function ManageUsersPage() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [editingPointsUser, setEditingPointsUser] = useState<User | null>(null);
   const [editingPoints, setEditingPoints] = useState(0);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -112,6 +114,23 @@ export function ManageUsersPage() {
   const handleCancelEditPoints = () => {
     setEditingPointsUser(null);
     setEditingPoints(0);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deletingUser) return;
+
+    try {
+      setIsDeleting(true);
+      setError(null);
+      await deleteUser(deletingUser.uid);
+      await loadUsers();
+      setDeletingUser(null);
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError('Erro ao deletar usuário');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const getFirstTwoNames = (fullName: string): string => {
@@ -261,19 +280,30 @@ export function ManageUsersPage() {
                                   🎯 Editar Pontos
                                 </button>
                                 {user.uid !== currentUser?.uid && (
-                                  <button
-                                    onClick={() => {
-                                      handleToggleAdmin(user.uid, user.isAdmin);
-                                      setOpenDropdown(null);
-                                    }}
-                                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
-                                      user.isAdmin
-                                        ? 'text-red-600'
-                                        : 'text-green-600'
-                                    }`}
-                                  >
-                                    {user.isAdmin ? '🔒 Remover Admin' : '👑 Tornar Admin'}
-                                  </button>
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        handleToggleAdmin(user.uid, user.isAdmin);
+                                        setOpenDropdown(null);
+                                      }}
+                                      className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
+                                        user.isAdmin
+                                          ? 'text-red-600'
+                                          : 'text-green-600'
+                                      }`}
+                                    >
+                                      {user.isAdmin ? '🔒 Remover Admin' : '👑 Tornar Admin'}
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setDeletingUser(user);
+                                        setOpenDropdown(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 border-t border-gray-200"
+                                    >
+                                      🗑️ Deletar Usuário
+                                    </button>
+                                  </>
                                 )}
                               </div>
                             </div>
@@ -351,6 +381,64 @@ export function ManageUsersPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deletingUser && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget && !isDeleting) {
+                setDeletingUser(null);
+              }
+            }}
+          >
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Deletar Usuário
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Tem certeza que deseja deletar o usuário <strong>{getFirstTwoNames(deletingUser.username)}</strong>?
+                  </p>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-red-800">
+                      <strong>⚠️ Atenção:</strong> Esta ação irá:
+                    </p>
+                    <ul className="text-sm text-red-800 mt-2 ml-4 list-disc space-y-1">
+                      <li>Remover todas as informações pessoais do usuário</li>
+                      <li>Substituir o nome por "[Usuário Deletado]"</li>
+                      <li>Remover privilégios de administrador</li>
+                      <li>Zerar a pontuação</li>
+                      <li>As apostas do usuário permanecerão no sistema</li>
+                    </ul>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setDeletingUser(null)}
+                      disabled={isDeleting}
+                      className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleDeleteUser}
+                      disabled={isDeleting}
+                      className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                    >
+                      {isDeleting ? 'Deletando...' : 'Deletar'}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
