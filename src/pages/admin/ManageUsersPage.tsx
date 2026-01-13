@@ -143,8 +143,8 @@ export function ManageUsersPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow">
-          <div className="overflow-x-auto">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto overflow-y-visible">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -221,9 +221,8 @@ export function ManageUsersPage() {
                           </button>
                         </div>
                       ) : (
-                        <>
+                        <div className="relative inline-block text-left">
                           <button
-                            id={`dropdown-btn-${user.uid}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               setOpenDropdown(openDropdown === user.uid ? null : user.uid);
@@ -241,12 +240,7 @@ export function ManageUsersPage() {
                           </button>
 
                           {openDropdown === user.uid && (
-                            <div className="fixed mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
-                              style={{
-                                top: `${(document.getElementById(`dropdown-btn-${user.uid}`)?.getBoundingClientRect().bottom || 0) + window.scrollY}px`,
-                                right: `${window.innerWidth - (document.getElementById(`dropdown-btn-${user.uid}`)?.getBoundingClientRect().right || 0)}px`
-                              }}
-                            >
+                            <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                               <div className="py-1">
                                 <button
                                   onClick={() => {
@@ -284,7 +278,7 @@ export function ManageUsersPage() {
                               </div>
                             </div>
                           )}
-                        </>
+                        </div>
                       )}
                     </td>
                   </tr>
