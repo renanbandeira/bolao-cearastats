@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getAllUsers, toggleAdminStatus, updateUserUsername } from '../../services/userService';
+import type { FormEvent } from 'react';
+import { getAllUsers, toggleAdminStatus, updateUserUsername, updateUserPoints } from '../../services/userService';
 import { useAuth } from '../../contexts/AuthContext';
 import type { User } from '../../types';
 
@@ -12,6 +13,8 @@ export function ManageUsersPage() {
   const [editingUsername, setEditingUsername] = useState('');
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [editingPointsUser, setEditingPointsUser] = useState<User | null>(null);
+  const [editingPoints, setEditingPoints] = useState(0);
 
   useEffect(() => {
     loadUsers();
@@ -82,6 +85,33 @@ export function ManageUsersPage() {
   const handleCancelEdit = () => {
     setEditingUserId(null);
     setEditingUsername('');
+  };
+
+  const handleEditPoints = (user: User) => {
+    setEditingPointsUser(user);
+    setEditingPoints(user.totalPoints);
+  };
+
+  const handleSavePoints = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editingPointsUser) return;
+
+    try {
+      setSavingUserId(editingPointsUser.uid);
+      await updateUserPoints(editingPointsUser.uid, editingPoints);
+      await loadUsers();
+      setEditingPointsUser(null);
+    } catch (err) {
+      console.error('Error updating points:', err);
+      setError('Erro ao atualizar pontos');
+    } finally {
+      setSavingUserId(null);
+    }
+  };
+
+  const handleCancelEditPoints = () => {
+    setEditingPointsUser(null);
+    setEditingPoints(0);
   };
 
   const getFirstTwoNames = (fullName: string): string => {
@@ -227,6 +257,15 @@ export function ManageUsersPage() {
                                 >
                                   ✏️ Editar Nome
                                 </button>
+                                <button
+                                  onClick={() => {
+                                    handleEditPoints(user);
+                                    setOpenDropdown(null);
+                                  }}
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                  🎯 Editar Pontos
+                                </button>
                                 {user.uid !== currentUser?.uid && (
                                   <button
                                     onClick={() => {
@@ -260,6 +299,67 @@ export function ManageUsersPage() {
             </div>
           )}
         </div>
+
+        {/* Edit Points Modal */}
+        {editingPointsUser && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                handleCancelEditPoints();
+              }
+            }}
+          >
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Editar Pontos - {getFirstTwoNames(editingPointsUser.username)}
+              </h3>
+
+              <form onSubmit={handleSavePoints} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Total de Pontos
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editingPoints}
+                    onChange={(e) => setEditingPoints(parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-2xl font-bold"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Pontos atuais: {editingPointsUser.totalPoints}
+                  </p>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <p className="text-xs text-yellow-800">
+                    ⚠️ <strong>Atenção:</strong> Esta ação ajustará manualmente os pontos do usuário. Use com cuidado.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleCancelEditPoints}
+                    disabled={savingUserId === editingPointsUser.uid}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingUserId === editingPointsUser.uid}
+                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                  >
+                    {savingUserId === editingPointsUser.uid ? 'Salvando...' : 'Salvar'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

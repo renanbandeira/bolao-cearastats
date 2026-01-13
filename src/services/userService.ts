@@ -72,3 +72,17 @@ export async function updateUserUsername(
     lastUpdated: serverTimestamp(),
   });
 }
+
+/**
+ * Update user's total points (admin only)
+ */
+export async function updateUserPoints(
+  userId: string,
+  totalPoints: number
+): Promise<void> {
+  const docRef = doc(db, 'users', userId);
+  await updateDoc(docRef, {
+    totalPoints,
+    lastUpdated: serverTimestamp(),
+  });
+}
