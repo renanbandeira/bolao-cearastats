@@ -7,6 +7,9 @@ import {
   orderBy,
   serverTimestamp,
   deleteField,
+  deleteDoc,
+  where,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { User, UserRanking } from '../types';
@@ -89,15 +92,34 @@ export async function updateUserPoints(
 }
 
 /**
- * Delete a user (admin only)
- * WARNING: This will NOT delete the user's bets, which will remain in the system
+ * Delete a user and all related data (admin only)
+ * WARNING: This is a permanent deletion that cannot be undone
+ * - Deletes the user document
+ * - Deletes all bets made by this user
  */
 export async function deleteUser(userId: string): Promise<void> {
-  const docRef = doc(db, 'users', userId);
-  await updateDoc(docRef, {
-    username: '[Usuário Deletado]',
-    isAdmin: false,
-    totalPoints: 0,
-    lastUpdated: serverTimestamp(),
-  });
+  try {
+    // 1. Get all bets by this user
+    const betsQuery = query(
+      collection(db, 'bets'),
+      where('userId', '==', userId)
+    );
+    const betsSnapshot = await getDocs(betsQuery);
+
+    // 2. Delete all bets one by one (to avoid batch permission issues)
+    if (!betsSnapshot.empty) {
+      const deletePromises = betsSnapshot.docs.map((betDoc) =>
+        deleteDoc(betDoc.ref)
+      );
+
+      await Promise.all(deletePromises);
+    }
+
+    // 3. Delete the user document
+    const userRef = doc(db, 'users', userId);
+    await deleteDoc(userRef);
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    throw new Error(`Falha ao deletar usuário: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+  }
 }

@@ -127,7 +127,9 @@ export function ManageUsersPage() {
       setDeletingUser(null);
     } catch (err) {
       console.error('Error deleting user:', err);
-      setError('Erro ao deletar usuário');
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao deletar usuário';
+      setError(errorMessage);
+      setDeletingUser(null);
     } finally {
       setIsDeleting(false);
     }
@@ -404,20 +406,23 @@ export function ManageUsersPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Deletar Usuário
+                    Deletar Usuário Permanentemente
                   </h3>
                   <p className="text-sm text-gray-600 mb-4">
-                    Tem certeza que deseja deletar o usuário <strong>{getFirstTwoNames(deletingUser.username)}</strong>?
+                    Tem certeza que deseja deletar permanentemente o usuário <strong>{getFirstTwoNames(deletingUser.username)}</strong>?
                   </p>
                   <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-red-800">
-                      <strong>⚠️ Atenção:</strong> Esta ação irá:
+                    <p className="text-sm text-red-800 font-semibold mb-2">
+                      ⚠️ ATENÇÃO: Esta ação é PERMANENTE e IRREVERSÍVEL!
                     </p>
-                    <ul className="text-sm text-red-800 mt-2 ml-4 list-disc space-y-1">
-                      <li>Substituir o nome do usuário por "[Usuário Deletado]"</li>
-                      <li>Remover privilégios de administrador</li>
-                      <li>Zerar a pontuação do usuário</li>
-                      <li>As apostas permanecerão no sistema</li>
+                    <p className="text-sm text-red-800 mb-2">
+                      Esta ação irá deletar completamente:
+                    </p>
+                    <ul className="text-sm text-red-800 ml-4 list-disc space-y-1">
+                      <li>O usuário será removido do banco de dados</li>
+                      <li>Todas as apostas do usuário serão deletadas</li>
+                      <li>Todos os dados relacionados serão perdidos</li>
+                      <li><strong>Esta operação NÃO pode ser desfeita</strong></li>
                     </ul>
                   </div>
                   <div className="flex gap-3">
@@ -433,7 +438,7 @@ export function ManageUsersPage() {
                       disabled={isDeleting}
                       className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                     >
-                      {isDeleting ? 'Deletando...' : 'Deletar'}
+                      {isDeleting ? 'Deletando Permanentemente...' : 'Deletar Permanentemente'}
                     </button>
                   </div>
                 </div>

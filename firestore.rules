@@ -41,8 +41,8 @@ service cloud.firestore {
                        request.resource.data.diff(resource.data).affectedKeys()
                          .hasOnly(['username', 'isAdmin', 'lastUpdated', 'totalPoints']));
 
-      // No deletion allowed
-      allow delete: if false;
+      // Only admins can delete users
+      allow delete: if isAdmin();
     }
 
     // Matches collection
