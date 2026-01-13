@@ -92,6 +92,20 @@ export async function updateUserPoints(
 }
 
 /**
+ * Update user's season medals (admin only)
+ */
+export async function updateUserMedals(
+  userId: string,
+  medals: { gold: number; silver: number; bronze: number }
+): Promise<void> {
+  const docRef = doc(db, 'users', userId);
+  await updateDoc(docRef, {
+    seasonMedals: medals,
+    lastUpdated: serverTimestamp(),
+  });
+}
+
+/**
  * Delete a user and all related data (admin only)
  * WARNING: This is a permanent deletion that cannot be undone
  * - Deletes the user document

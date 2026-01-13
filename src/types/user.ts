@@ -10,6 +10,11 @@ export interface User {
   totalPoints: number;
   createdAt: Timestamp;
   lastUpdated?: Timestamp;
+  seasonMedals?: {
+    gold: number;
+    silver: number;
+    bronze: number;
+  };
 }
 
 export interface UserRanking extends User {

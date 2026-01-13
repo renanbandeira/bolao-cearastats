@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { getAllUsers, toggleAdminStatus, updateUserUsername, updateUserPoints, deleteUser } from '../../services/userService';
+import { getAllUsers, toggleAdminStatus, updateUserUsername, updateUserPoints, updateUserMedals, deleteUser } from '../../services/userService';
 import { useAuth } from '../../contexts/AuthContext';
 import type { User } from '../../types';
 
@@ -15,6 +15,8 @@ export function ManageUsersPage() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [editingPointsUser, setEditingPointsUser] = useState<User | null>(null);
   const [editingPoints, setEditingPoints] = useState(0);
+  const [editingMedalsUser, setEditingMedalsUser] = useState<User | null>(null);
+  const [editingMedals, setEditingMedals] = useState({ gold: 0, silver: 0, bronze: 0 });
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -114,6 +116,33 @@ export function ManageUsersPage() {
   const handleCancelEditPoints = () => {
     setEditingPointsUser(null);
     setEditingPoints(0);
+  };
+
+  const handleEditMedals = (user: User) => {
+    setEditingMedalsUser(user);
+    setEditingMedals(user.seasonMedals || { gold: 0, silver: 0, bronze: 0 });
+  };
+
+  const handleSaveMedals = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editingMedalsUser) return;
+
+    try {
+      setSavingUserId(editingMedalsUser.uid);
+      await updateUserMedals(editingMedalsUser.uid, editingMedals);
+      await loadUsers();
+      setEditingMedalsUser(null);
+    } catch (err) {
+      console.error('Error updating medals:', err);
+      setError('Erro ao atualizar medalhas');
+    } finally {
+      setSavingUserId(null);
+    }
+  };
+
+  const handleCancelEditMedals = () => {
+    setEditingMedalsUser(null);
+    setEditingMedals({ gold: 0, silver: 0, bronze: 0 });
   };
 
   const handleDeleteUser = async () => {
@@ -281,6 +310,15 @@ export function ManageUsersPage() {
                                 >
                                   🎯 Editar Pontos
                                 </button>
+                                <button
+                                  onClick={() => {
+                                    handleEditMedals(user);
+                                    setOpenDropdown(null);
+                                  }}
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                  🏅 Editar Medalhas
+                                </button>
                                 {user.uid !== currentUser?.uid && (
                                   <>
                                     <button
@@ -380,6 +418,101 @@ export function ManageUsersPage() {
                     className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                   >
                     {savingUserId === editingPointsUser.uid ? 'Salvando...' : 'Salvar'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Medals Modal */}
+        {editingMedalsUser && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                handleCancelEditMedals();
+              }
+            }}
+          >
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Editar Medalhas de Temporada - {getFirstTwoNames(editingMedalsUser.username)}
+              </h3>
+
+              <form onSubmit={handleSaveMedals} className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 text-center">
+                      🥇 Ouro
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editingMedals.gold}
+                      onChange={(e) => setEditingMedals({ ...editingMedals, gold: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-center text-xl font-bold"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 text-center">
+                      🥈 Prata
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editingMedals.silver}
+                      onChange={(e) => setEditingMedals({ ...editingMedals, silver: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent text-center text-xl font-bold"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 text-center">
+                      🥉 Bronze
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editingMedals.bronze}
+                      onChange={(e) => setEditingMedals({ ...editingMedals, bronze: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-center text-xl font-bold"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs text-gray-600 font-medium mb-1">Medalhas atuais:</p>
+                  <div className="flex items-center justify-center gap-4">
+                    <span className="text-sm">🥇 {editingMedalsUser.seasonMedals?.gold || 0}</span>
+                    <span className="text-sm">🥈 {editingMedalsUser.seasonMedals?.silver || 0}</span>
+                    <span className="text-sm">🥉 {editingMedalsUser.seasonMedals?.bronze || 0}</span>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-xs text-blue-800">
+                    ℹ️ <strong>Informação:</strong> As medalhas representam colocações em temporadas anteriores. Ouro para 1º lugar, Prata para 2º lugar, e Bronze para 3º lugar.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleCancelEditMedals}
+                    disabled={savingUserId === editingMedalsUser.uid}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingUserId === editingMedalsUser.uid}
+                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                  >
+                    {savingUserId === editingMedalsUser.uid ? 'Salvando...' : 'Salvar'}
                   </button>
                 </div>
               </form>
