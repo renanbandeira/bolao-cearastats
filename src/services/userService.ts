@@ -6,6 +6,7 @@ import {
   query,
   orderBy,
   serverTimestamp,
+  deleteField,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { User, UserRanking } from '../types';
@@ -97,7 +98,6 @@ export async function deleteUser(userId: string): Promise<void> {
     username: '[Usuário Deletado]',
     isAdmin: false,
     totalPoints: 0,
-    photoURL: null,
     lastUpdated: serverTimestamp(),
   });
 }

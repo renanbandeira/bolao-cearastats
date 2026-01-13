@@ -414,11 +414,10 @@ export function ManageUsersPage() {
                       <strong>⚠️ Atenção:</strong> Esta ação irá:
                     </p>
                     <ul className="text-sm text-red-800 mt-2 ml-4 list-disc space-y-1">
-                      <li>Remover todas as informações pessoais do usuário</li>
-                      <li>Substituir o nome por "[Usuário Deletado]"</li>
+                      <li>Substituir o nome do usuário por "[Usuário Deletado]"</li>
                       <li>Remover privilégios de administrador</li>
-                      <li>Zerar a pontuação</li>
-                      <li>As apostas do usuário permanecerão no sistema</li>
+                      <li>Zerar a pontuação do usuário</li>
+                      <li>As apostas permanecerão no sistema</li>
                     </ul>
                   </div>
                   <div className="flex gap-3">

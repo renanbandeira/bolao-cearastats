@@ -33,13 +33,13 @@ service cloud.firestore {
                       request.resource.data.uid == request.auth.uid;
 
       // User can update their own username
-      // Admin can update any user's username, isAdmin status, totalPoints, or photoURL (for deletion)
+      // Admin can update any user's username, isAdmin status, or totalPoints
       allow update: if (isOwner(userId) &&
                        request.resource.data.diff(resource.data).affectedKeys()
                          .hasOnly(['username', 'lastUpdated'])) ||
                        (isAdmin() &&
                        request.resource.data.diff(resource.data).affectedKeys()
-                         .hasOnly(['username', 'isAdmin', 'lastUpdated', 'totalPoints', 'photoURL']));
+                         .hasOnly(['username', 'isAdmin', 'lastUpdated', 'totalPoints']));
 
       // No deletion allowed
       allow delete: if false;
