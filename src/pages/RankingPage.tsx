@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserRanking } from '../services/userService';
-import { getAllSeasons, getActiveSeason } from '../services/seasonService';
+import { getActiveSeason } from '../services/seasonService';
 import type { UserRanking } from '../types';
 
 interface UserMedals {
@@ -38,60 +38,28 @@ export function RankingPage() {
       const currentData = await getUserRanking();
       setCurrentRanking(currentData);
 
-      // Load global ranking from all seasons
-      const seasons = await getAllSeasons();
-      const endedSeasons = seasons.filter(s => s.status === 'ended' && s.finalRankings);
-
-      // Calculate medals for each user
-      const medalsMap = new Map<string, UserMedals>();
-
-      for (const season of endedSeasons) {
-        if (!season.finalRankings) continue;
-
-        for (const ranking of season.finalRankings) {
-          if (!medalsMap.has(ranking.userId)) {
-            medalsMap.set(ranking.userId, {
-              uid: ranking.userId,
-              username: ranking.username,
-              photoURL: '', // Will be filled from current ranking
-              gold: 0,
-              silver: 0,
-              bronze: 0,
-              totalMedals: 0,
-            });
-          }
-
-          const userMedals = medalsMap.get(ranking.userId)!;
-          if (ranking.rank === 1) {
-            userMedals.gold++;
-            userMedals.totalMedals++;
-          } else if (ranking.rank === 2) {
-            userMedals.silver++;
-            userMedals.totalMedals++;
-          } else if (ranking.rank === 3) {
-            userMedals.bronze++;
-            userMedals.totalMedals++;
-          }
-        }
-      }
-
-      // Add photoURL from current ranking
-      for (const user of currentData) {
-        if (medalsMap.has(user.uid)) {
-          medalsMap.get(user.uid)!.photoURL = user.photoURL || '';
-        }
-      }
-
-      // Convert to array and sort by total medals (gold > silver > bronze)
-      const globalData = Array.from(medalsMap.values())
-        .filter(user => user.totalMedals > 0)
+      // Load global ranking from users with seasonMedals
+      const usersWithMedals: UserMedals[] = currentData
+        .filter(user => {
+          const medals = user.seasonMedals;
+          return medals && (medals.gold > 0 || medals.silver > 0 || medals.bronze > 0);
+        })
+        .map(user => ({
+          uid: user.uid,
+          username: user.username,
+          photoURL: user.photoURL || '',
+          gold: user.seasonMedals?.gold || 0,
+          silver: user.seasonMedals?.silver || 0,
+          bronze: user.seasonMedals?.bronze || 0,
+          totalMedals: (user.seasonMedals?.gold || 0) + (user.seasonMedals?.silver || 0) + (user.seasonMedals?.bronze || 0),
+        }))
         .sort((a, b) => {
           if (b.gold !== a.gold) return b.gold - a.gold;
           if (b.silver !== a.silver) return b.silver - a.silver;
           return b.bronze - a.bronze;
         });
 
-      setGlobalRanking(globalData);
+      setGlobalRanking(usersWithMedals);
     } catch (err) {
       console.error('Error loading ranking:', err);
     } finally {
@@ -115,30 +83,32 @@ export function RankingPage() {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Ranking</h1>
 
         {/* Tabs */}
-        <div className="mb-6 border-b border-gray-200">
-          <div className="flex gap-4 overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('current')}
-              className={`px-4 py-3 font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'current'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Temporada Atual
-            </button>
-            <button
-              onClick={() => setActiveTab('global')}
-              className={`px-4 py-3 font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'global'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Ranking Global
-            </button>
+        {globalRanking.length > 0 && (
+          <div className="mb-6 border-b border-gray-200">
+            <div className="flex gap-4 overflow-x-auto">
+              <button
+                onClick={() => setActiveTab('current')}
+                className={`px-4 py-3 font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === 'current'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Temporada Atual
+              </button>
+              <button
+                onClick={() => setActiveTab('global')}
+                className={`px-4 py-3 font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === 'global'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Ranking Global
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Current Season Tab */}
         {activeTab === 'current' && (
@@ -326,7 +296,7 @@ export function RankingPage() {
                     {globalRanking.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="px-6 py-8 text-center text-gray-600">
-                          Nenhuma temporada finalizada ainda.
+                          Nenhum usuário com medalhas ainda.
                         </td>
                       </tr>
                     ) : (
@@ -406,7 +376,7 @@ export function RankingPage() {
             <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
               <h3 className="font-medium text-green-900 mb-2 text-sm sm:text-base">🏆 Ranking Global</h3>
               <p className="text-xs sm:text-sm text-green-800">
-                O ranking global mostra os campeões históricos do bolão. As medalhas representam:
+                O ranking global mostra os campeões históricos do bolão. As medalhas são concedidas pelos administradores e representam:
               </p>
               <ul className="text-xs sm:text-sm text-green-800 mt-2 space-y-1">
                 <li>• <span className="text-lg">🥇</span> <strong>Ouro:</strong> 1º lugar em uma temporada</li>

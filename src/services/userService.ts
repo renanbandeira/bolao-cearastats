@@ -19,7 +19,7 @@ export async function getAllUsers(): Promise<User[]> {
   const q = query(collection(db, 'users'), orderBy('createdAt', 'asc'));
   const snapshot = await getDocs(q);
 
-  return snapshot.docs.map((doc) => doc.data()) as User[];
+  return (snapshot.docs.map((doc) => doc.data()) as User[]).sort((a, b) => a.isAdmin ? -1 : b.isAdmin ? 1 : a.displayName.localeCompare(b.displayName));
 }
 
 /**
