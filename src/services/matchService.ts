@@ -204,8 +204,9 @@ export async function deleteMatch(matchId: string): Promise<void> {
     return;
   }
 
-  // 2. Calculate points to subtract for each user
+  // 2. Calculate points and scorer matches to subtract for each user
   const userPointsToSubtract = new Map<string, number>();
+  const userScorerMatchesToSubtract = new Map<string, number>();
 
   for (const betDoc of betsSnapshot.docs) {
     const bet = betDoc.data();
@@ -213,6 +214,15 @@ export async function deleteMatch(matchId: string): Promise<void> {
     if (bet.pointsEarned !== undefined && bet.pointsEarned !== null && bet.pointsEarned > 0) {
       const currentSubtraction = userPointsToSubtract.get(bet.userId) || 0;
       userPointsToSubtract.set(bet.userId, currentSubtraction + bet.pointsEarned);
+    }
+
+    // Check if this bet had a scorer match
+    if (bet.breakdown) {
+      const hadScorerMatch = bet.breakdown.matchedScorer || bet.breakdown.matchedScorerAlone;
+      if (hadScorerMatch) {
+        const currentScorerSubtraction = userScorerMatchesToSubtract.get(bet.userId) || 0;
+        userScorerMatchesToSubtract.set(bet.userId, currentScorerSubtraction + 1);
+      }
     }
   }
 
@@ -224,13 +234,25 @@ export async function deleteMatch(matchId: string): Promise<void> {
     batch.delete(doc(db, 'bets', betDoc.id));
   }
 
-  // Update user points
-  for (const [userId, pointsToSubtract] of userPointsToSubtract.entries()) {
-    const userRef = doc(db, 'users', userId);
-    batch.update(userRef, {
-      totalPoints: increment(-pointsToSubtract),
+  // Update user points and scorer matches
+  const allUserIds = new Set([...userPointsToSubtract.keys(), ...userScorerMatchesToSubtract.keys()]);
+  for (const userId of allUserIds) {
+    const pointsToSubtract = userPointsToSubtract.get(userId) || 0;
+    const scorerMatchesToSubtract = userScorerMatchesToSubtract.get(userId) || 0;
+
+    const updateData: any = {
       lastUpdated: serverTimestamp(),
-    });
+    };
+
+    if (pointsToSubtract > 0) {
+      updateData.totalPoints = increment(-pointsToSubtract);
+    }
+    if (scorerMatchesToSubtract > 0) {
+      updateData.scorerMatches = increment(-scorerMatchesToSubtract);
+    }
+
+    const userRef = doc(db, 'users', userId);
+    batch.update(userRef, updateData);
   }
 
   // Delete the match

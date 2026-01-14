@@ -16,8 +16,8 @@ export function SetMatchResultsPage() {
   const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
-    cearaScore: '',
-    opponentScore: '',
+    cearaScore: '0',
+    opponentScore: '0',
     scorers: '',
     assists: '',
   });
@@ -204,6 +204,7 @@ export function SetMatchResultsPage() {
                       }
                       className="w-full px-4 py-2 text-2xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
+                      defaultValue={0}
                       disabled={submitting}
                     />
                   </div>
@@ -224,6 +225,7 @@ export function SetMatchResultsPage() {
                       }
                       className="w-full px-4 py-2 text-2xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
+                      defaultValue={0}
                       disabled={submitting}
                     />
                   </div>

@@ -144,6 +144,10 @@ export function RankingPage() {
                         <p className="text-blue-100 text-sm mb-1">Seus Pontos</p>
                         <p className="text-3xl sm:text-4xl font-bold">{currentUserRanking.totalPoints}</p>
                       </div>
+                      <div className="text-right">
+                        <p className="text-blue-100 text-sm mb-1">Seus Acertos</p>
+                        <p className="text-3xl sm:text-4xl font-bold">⚽ {currentUserRanking.scorerMatches || 0}</p>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -156,14 +160,14 @@ export function RankingPage() {
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Posição
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          #
                         </th>
-                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Usuário
                         </th>
-                        <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Pontos
+                        <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Pts
                         </th>
                       </tr>
                     </thead>
@@ -202,44 +206,49 @@ export function RankingPage() {
                               isCurrentUser ? 'bg-blue-50' : 'hover:bg-gray-50'
                             }`}
                           >
-                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center gap-2">
+                            <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                              <div className="flex items-center gap-1">
                                 {badge && (
-                                  <span className="text-xl sm:text-2xl">{badge}</span>
+                                  <span className="text-lg sm:text-xl">{badge}</span>
                                 )}
-                                <span className={`text-base sm:text-lg font-semibold ${badgeColor || 'text-gray-900'}`}>
+                                <span className={`text-sm sm:text-base font-semibold ${badgeColor || 'text-gray-900'}`}>
                                   #{user.rank}
                                 </span>
                               </div>
                             </td>
-                            <td className="px-4 sm:px-6 py-4">
-                              <div className="flex items-center">
+                            <td className="px-2 sm:px-4 py-3" style={{ maxWidth: '150px' }}>
+                              <div className="flex items-center gap-2">
                                 {user.photoURL && (
                                   <img
                                     src={user.photoURL}
                                     alt={user.username}
-                                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-3 flex-shrink-0"
+                                    className="w-7 h-7 sm:w-9 sm:h-9 rounded-full flex-shrink-0"
                                   />
                                 )}
-                                <div className="min-w-0">
-                                  <div className="text-sm font-medium text-gray-900 truncate">
-                                    {user.username}
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                                    {user.username.split(' ').slice(0, 2).join(' ')}
                                     {isCurrentUser && (
-                                      <span className="ml-2 text-xs text-blue-600 font-semibold">
+                                      <span className="ml-1 text-xs text-blue-600 font-semibold">
                                         (Você)
                                       </span>
                                     )}
                                   </div>
-                                  {user.isAdmin && (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                      Admin
+                                  <div className="flex items-center gap-1 mt-0.5">
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-orange-100 text-orange-800">
+                                      ⚽ {user.scorerMatches || 0}
                                     </span>
-                                  )}
+                                    {user.isAdmin && (
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                        Admin
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </td>
-                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
-                              <div className="text-base sm:text-lg font-bold text-gray-900">
+                            <td className="px-2 sm:px-4 py-3 whitespace-nowrap text-center">
+                              <div className="text-sm sm:text-base font-bold text-gray-900">
                                 {user.totalPoints}
                               </div>
                             </td>
@@ -265,8 +274,11 @@ export function RankingPage() {
                   <li>• <strong>Jogador deu assistência (compartilhado):</strong> 1 ponto</li>
                   <li>• <strong>Jogador deu assistência (único):</strong> 2 pontos</li>
                 </ul>
-                <p className="text-xs sm:text-sm text-blue-800 mt-2">
+                <p className="text-xs sm:text-sm text-blue-800 mt-3">
                   💡 <em>"Único"</em> significa que você foi o único usuário a fazer aquela previsão!
+                </p>
+                <p className="text-xs sm:text-sm text-blue-800 mt-2">
+                  ⚽ <strong>Acertos:</strong> Contador de apostas onde você acertou o jogador que marcou gol
                 </p>
               </div>
             )}
@@ -281,13 +293,13 @@ export function RankingPage() {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Posição
+                      <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        #
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Usuário
                       </th>
-                      <th className="px-4 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Medalhas
                       </th>
                     </tr>
@@ -310,25 +322,25 @@ export function RankingPage() {
                               isCurrentUser ? 'bg-blue-50' : 'hover:bg-gray-50'
                             }`}
                           >
-                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                              <span className="text-base sm:text-lg font-semibold text-gray-900">
+                            <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                              <span className="text-sm sm:text-base font-semibold text-gray-900">
                                 #{index + 1}
                               </span>
                             </td>
-                            <td className="px-4 sm:px-6 py-4">
-                              <div className="flex items-center">
+                            <td className="px-2 sm:px-4 py-3" style={{ maxWidth: '150px' }}>
+                              <div className="flex items-center gap-2">
                                 {user.photoURL && (
                                   <img
                                     src={user.photoURL}
                                     alt={user.username}
-                                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-3 flex-shrink-0"
+                                    className="w-7 h-7 sm:w-9 sm:h-9 rounded-full flex-shrink-0"
                                   />
                                 )}
-                                <div className="min-w-0">
-                                  <div className="text-sm font-medium text-gray-900 truncate">
-                                    {user.username}
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                                    {user.username.split(' ').slice(0, 2).join(' ')}
                                     {isCurrentUser && (
-                                      <span className="ml-2 text-xs text-blue-600 font-semibold">
+                                      <span className="ml-1 text-xs text-blue-600 font-semibold">
                                         (Você)
                                       </span>
                                     )}
@@ -336,28 +348,28 @@ export function RankingPage() {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-4 sm:px-6 py-4">
-                              <div className="flex items-center justify-center gap-3 flex-wrap">
+                            <td className="px-2 sm:px-4 py-3">
+                              <div className="flex items-center justify-center gap-2 flex-wrap">
                                 {user.gold > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-xl sm:text-2xl">🥇</span>
-                                    <span className="text-sm sm:text-base font-semibold text-yellow-600">
+                                  <div className="flex items-center gap-0.5">
+                                    <span className="text-base sm:text-lg">🥇</span>
+                                    <span className="text-xs sm:text-sm font-semibold text-yellow-600">
                                       {user.gold}
                                     </span>
                                   </div>
                                 )}
                                 {user.silver > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-xl sm:text-2xl">🥈</span>
-                                    <span className="text-sm sm:text-base font-semibold text-gray-500">
+                                  <div className="flex items-center gap-0.5">
+                                    <span className="text-base sm:text-lg">🥈</span>
+                                    <span className="text-xs sm:text-sm font-semibold text-gray-500">
                                       {user.silver}
                                     </span>
                                   </div>
                                 )}
                                 {user.bronze > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-xl sm:text-2xl">🥉</span>
-                                    <span className="text-sm sm:text-base font-semibold text-orange-600">
+                                  <div className="flex items-center gap-0.5">
+                                    <span className="text-base sm:text-lg">🥉</span>
+                                    <span className="text-xs sm:text-sm font-semibold text-orange-600">
                                       {user.bronze}
                                     </span>
                                   </div>

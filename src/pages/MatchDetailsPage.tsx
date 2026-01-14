@@ -35,8 +35,8 @@ export function MatchDetailsPage() {
   const [loadingBets, setLoadingBets] = useState(false);
 
   const [formData, setFormData] = useState({
-    cearaScore: '',
-    opponentScore: '',
+    cearaScore: '0',
+    opponentScore: '0',
     predictedPlayer: '',
   });
 
@@ -99,6 +99,17 @@ export function MatchDetailsPage() {
       return;
     }
 
+    // Check if match has already started
+    if (match) {
+      const matchDate = match.matchDate.toDate();
+      const now = new Date();
+
+      if (now >= matchDate) {
+        setError('Não é possível apostar em um jogo que já começou!');
+        return;
+      }
+    }
+
     try {
       setSubmitting(true);
 
@@ -136,14 +147,25 @@ export function MatchDetailsPage() {
   };
 
   const handleEditClick = () => {
-    if (userBet) {
-      setFormData({
-        cearaScore: userBet.predictedScore.ceara.toString(),
-        opponentScore: userBet.predictedScore.opponent.toString(),
-        predictedPlayer: userBet.predictedPlayer || '',
-      });
-      setIsEditing(true);
+    if (!userBet) return;
+
+    // Check if match has already started
+    if (match) {
+      const matchDate = match.matchDate.toDate();
+      const now = new Date();
+
+      if (now >= matchDate) {
+        setError('Não é possível editar a aposta de um jogo que já começou!');
+        return;
+      }
     }
+
+    setFormData({
+      cearaScore: userBet.predictedScore.ceara.toString(),
+      opponentScore: userBet.predictedScore.opponent.toString(),
+      predictedPlayer: userBet.predictedPlayer || '',
+    });
+    setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
@@ -374,6 +396,7 @@ export function MatchDetailsPage() {
                     value={formData.cearaScore}
                     onChange={(e) => setFormData({ ...formData, cearaScore: e.target.value })}
                     className="w-full px-4 py-2 text-2xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    defaultValue={0}
                     required
                     disabled={submitting}
                   />
@@ -390,6 +413,7 @@ export function MatchDetailsPage() {
                     onChange={(e) => setFormData({ ...formData, opponentScore: e.target.value })}
                     className="w-full px-4 py-2 text-2xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
+                    defaultValue={0}
                     disabled={submitting}
                   />
                 </div>

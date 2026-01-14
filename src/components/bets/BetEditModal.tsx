@@ -131,6 +131,7 @@ export function BetEditModal({ bet, match, isOpen, onClose, onSuccess }: BetEdit
                   className="w-full px-4 py-2 text-2xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                   disabled={submitting}
+                  defaultValue={0}
                 />
               </div>
               <div>
@@ -145,6 +146,7 @@ export function BetEditModal({ bet, match, isOpen, onClose, onSuccess }: BetEdit
                   onChange={(e) => setFormData({ ...formData, opponentScore: e.target.value })}
                   className="w-full px-4 py-2 text-2xl text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
+                  defaultValue={0}
                   disabled={submitting}
                 />
               </div>

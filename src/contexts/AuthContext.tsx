@@ -92,6 +92,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           photoURL: user.photoURL || '',
           isAdmin: isFirstUser,
           totalPoints: 0,
+          scorerMatches: 0,
           createdAt: serverTimestamp(),
           lastUpdated: serverTimestamp(),
         };

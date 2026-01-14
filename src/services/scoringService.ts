@@ -36,6 +36,7 @@ export async function setMatchResultsAndCalculatePoints(
   // 4. Calculate points for each bet and prepare batch update
   const batch = writeBatch(db);
   const userPointsDiff = new Map<string, number>();
+  const userScorerMatchDiff = new Map<string, number>(); // Track scorer match changes
 
   for (const bet of bets) {
     const oldPoints = bet.pointsEarned || 0;
@@ -57,6 +58,22 @@ export async function setMatchResultsAndCalculatePoints(
     const newPoints = result.points;
     const pointsDiff = newPoints - oldPoints;
 
+    // Check if user matched a scorer or assist
+    const hadScorerMatch = bet.breakdown && (
+      bet.breakdown.matchedScorer || bet.breakdown.matchedScorerAlone
+    );
+    const hasScorerMatch = result.breakdown && (
+      result.breakdown.matchedScorer || result.breakdown.matchedScorerAlone
+    );
+
+    // Calculate scorer match difference
+    let scorerMatchDiff = 0;
+    if (!hadScorerMatch && hasScorerMatch) {
+      scorerMatchDiff = 1; // New scorer match
+    } else if (hadScorerMatch && !hasScorerMatch) {
+      scorerMatchDiff = -1; // Lost scorer match (result updated)
+    }
+
     // Update bet document with calculated points
     const betRef = doc(db, 'bets', bet.id);
     batch.update(betRef, {
@@ -68,17 +85,33 @@ export async function setMatchResultsAndCalculatePoints(
     // Track the point difference for each user
     const currentDiff = userPointsDiff.get(bet.userId) || 0;
     userPointsDiff.set(bet.userId, currentDiff + pointsDiff);
+
+    // Track scorer match difference for each user
+    if (scorerMatchDiff !== 0) {
+      const currentScorerDiff = userScorerMatchDiff.get(bet.userId) || 0;
+      userScorerMatchDiff.set(bet.userId, currentScorerDiff + scorerMatchDiff);
+    }
   }
 
-  // 5. Update user total points with the difference
-  for (const [userId, pointsDiff] of userPointsDiff.entries()) {
+  // 5. Update user total points and scorer matches with the difference
+  const allUserIds = new Set([...userPointsDiff.keys(), ...userScorerMatchDiff.keys()]);
+  for (const userId of allUserIds) {
+    const pointsDiff = userPointsDiff.get(userId) || 0;
+    const scorerDiff = userScorerMatchDiff.get(userId) || 0;
+
+    const updateData: any = {
+      lastUpdated: serverTimestamp(),
+    };
+
     if (pointsDiff !== 0) {
-      const userRef = doc(db, 'users', userId);
-      batch.update(userRef, {
-        totalPoints: increment(pointsDiff),
-        lastUpdated: serverTimestamp(),
-      });
+      updateData.totalPoints = increment(pointsDiff);
     }
+    if (scorerDiff !== 0) {
+      updateData.scorerMatches = increment(scorerDiff);
+    }
+
+    const userRef = doc(db, 'users', userId);
+    batch.update(userRef, updateData);
   }
 
   // 6. Commit all updates
@@ -116,6 +149,7 @@ export async function recalculateMatchPoints(matchId: string): Promise<void> {
   // 4. Calculate new points and track the difference for each user
   const batch = writeBatch(db);
   const userPointsDiff = new Map<string, number>();
+  const userScorerMatchDiff = new Map<string, number>(); // Track scorer match changes
 
   for (const bet of bets) {
     const oldPoints = bet.pointsEarned || 0;
@@ -137,6 +171,22 @@ export async function recalculateMatchPoints(matchId: string): Promise<void> {
     const newPoints = result.points;
     const pointsDiff = newPoints - oldPoints;
 
+    // Check if user matched a scorer or assist
+    const hadScorerMatch = bet.breakdown && (
+      bet.breakdown.matchedScorer || bet.breakdown.matchedScorerAlone
+    );
+    const hasScorerMatch = result.breakdown && (
+      result.breakdown.matchedScorer || result.breakdown.matchedScorerAlone
+    );
+
+    // Calculate scorer match difference
+    let scorerMatchDiff = 0;
+    if (!hadScorerMatch && hasScorerMatch) {
+      scorerMatchDiff = 1; // New scorer match
+    } else if (hadScorerMatch && !hasScorerMatch) {
+      scorerMatchDiff = -1; // Lost scorer match (result updated)
+    }
+
     // Update bet document with recalculated points
     const betRef = doc(db, 'bets', bet.id);
     batch.update(betRef, {
@@ -148,17 +198,33 @@ export async function recalculateMatchPoints(matchId: string): Promise<void> {
     // Track the point difference for each user
     const currentDiff = userPointsDiff.get(bet.userId) || 0;
     userPointsDiff.set(bet.userId, currentDiff + pointsDiff);
+
+    // Track scorer match difference for each user
+    if (scorerMatchDiff !== 0) {
+      const currentScorerDiff = userScorerMatchDiff.get(bet.userId) || 0;
+      userScorerMatchDiff.set(bet.userId, currentScorerDiff + scorerMatchDiff);
+    }
   }
 
-  // 5. Update user total points with the difference
-  for (const [userId, pointsDiff] of userPointsDiff.entries()) {
+  // 5. Update user total points and scorer matches with the difference
+  const allUserIds = new Set([...userPointsDiff.keys(), ...userScorerMatchDiff.keys()]);
+  for (const userId of allUserIds) {
+    const pointsDiff = userPointsDiff.get(userId) || 0;
+    const scorerDiff = userScorerMatchDiff.get(userId) || 0;
+
+    const updateData: any = {
+      lastUpdated: serverTimestamp(),
+    };
+
     if (pointsDiff !== 0) {
-      const userRef = doc(db, 'users', userId);
-      batch.update(userRef, {
-        totalPoints: increment(pointsDiff),
-        lastUpdated: serverTimestamp(),
-      });
+      updateData.totalPoints = increment(pointsDiff);
     }
+    if (scorerDiff !== 0) {
+      updateData.scorerMatches = increment(scorerDiff);
+    }
+
+    const userRef = doc(db, 'users', userId);
+    batch.update(userRef, updateData);
   }
 
   // 6. Commit all updates

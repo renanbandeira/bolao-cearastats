@@ -8,6 +8,7 @@ export interface User {
   photoURL: string;
   isAdmin: boolean;
   totalPoints: number;
+  scorerMatches: number; // Counter for correctly predicted scorers/assists
   createdAt: Timestamp;
   lastUpdated?: Timestamp;
   seasonMedals?: {

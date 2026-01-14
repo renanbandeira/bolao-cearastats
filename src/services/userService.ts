@@ -29,6 +29,7 @@ export async function getUserRanking(limit?: number): Promise<UserRanking[]> {
   const q = query(
     collection(db, 'users'),
     orderBy('totalPoints', 'desc'),
+    orderBy('scorerMatches', 'desc'),
     orderBy('username', 'asc')
   );
   const snapshot = await getDocs(q);
