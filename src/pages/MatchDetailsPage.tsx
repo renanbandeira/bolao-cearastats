@@ -7,6 +7,7 @@ import { placeBet, updateBet, getUserBetForMatch, getMatchBetStatistics, getMatc
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { Match, Bet } from '../types';
+import { sanitizePlayerName } from '../lib/scoring';
 
 interface BetWithUser extends Bet {
   username: string;
@@ -427,7 +428,7 @@ export function MatchDetailsPage() {
                   type="text"
                   id="predictedPlayer"
                   value={formData.predictedPlayer}
-                  onChange={(e) => setFormData({ ...formData, predictedPlayer: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, predictedPlayer: sanitizePlayerName(e.target.value) })}
                   placeholder="Nome do jogador que pode marcar ou dar assistência"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={submitting}

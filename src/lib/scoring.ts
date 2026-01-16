@@ -72,10 +72,10 @@ export function calculatePoints(
     const predictedPlayerLower = bet.predictedPlayer.toLowerCase().trim();
 
     const playerScored = result.actualScorers?.some(
-      scorer => scorer.toLowerCase().trim() === predictedPlayerLower
+      scorer => sanitizePlayerName(scorer) === predictedPlayerLower
     );
     const playerAssisted = result.actualAssists?.some(
-      assist => assist.toLowerCase().trim() === predictedPlayerLower
+      assist => sanitizePlayerName(assist) === predictedPlayerLower
     );
     const isOnlyOne = playerCounts.get(predictedPlayerLower) === 1;
 
@@ -131,4 +131,26 @@ export function createCountMap<T>(
  */
 export function getScoreKey(score: Score): string {
   return `${score.ceara}-${score.opponent}`;
+}
+
+/**
+ * 
+ * @param playerName - The player name to sanitize
+ * @returns The sanitized player name (it will replace the player name with the most common name for that player. Ex: "Vinicius Goes" > "Vina")
+ */
+export function sanitizePlayerName(playerName: string): string {
+  const playerNameDictionary = {
+    "vinicius goes": "Vina",
+    "vinícius góes": "Vina",
+    "vinicius góes": "Vina",
+    "vinicius": "Vina",
+    "vinícius": "Vina",
+    "ph": "Pedro Henrique",
+    "vinicius zanocelo": "Zanocello",
+    "vinicius zanocello": "Zanocello",
+    "vinícius zanocelo": "Zanocello",
+    "vinícius zanocello": "Zanocello",
+    "zanocelo": "Zanocello",
+  }
+  return Object.keys(playerNameDictionary).includes(playerName.toLocaleLowerCase().trim()) ? playerNameDictionary[playerName.toLocaleLowerCase().trim() as keyof typeof playerNameDictionary] as string : playerName;
 }
