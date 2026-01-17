@@ -144,12 +144,14 @@ export function sanitizePlayerName(playerName: string): string {
     "vinícius góes": "Vina",
     "vinicius góes": "Vina",
     "vinicius": "Vina",
+    "fina": "Vina",
     "vinícius": "Vina",
     "ph": "Pedro Henrique",
     "vinicius zanocelo": "Zanocello",
     "vinicius zanocello": "Zanocello",
     "vinícius zanocelo": "Zanocello",
     "vinícius zanocello": "Zanocello",
+    "zano": "Zanocello",
     "zanocelo": "Zanocello",
   }
   return Object.keys(playerNameDictionary).includes(playerName.toLocaleLowerCase().trim()) ? playerNameDictionary[playerName.toLocaleLowerCase().trim() as keyof typeof playerNameDictionary] as string : playerName;
