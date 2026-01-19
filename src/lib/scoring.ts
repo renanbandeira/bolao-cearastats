@@ -147,6 +147,7 @@ export function sanitizePlayerName(playerName: string): string {
     "fina": "Vina",
     "vinícius": "Vina",
     "ph": "Pedro Henrique",
+    "luca": "Lucca",
     "vinicius zanocelo": "Zanocello",
     "vinicius zanocello": "Zanocello",
     "vinícius zanocelo": "Zanocello",
