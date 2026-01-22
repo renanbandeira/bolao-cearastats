@@ -28,9 +28,11 @@ service cloud.firestore {
       allow read: if isAuthenticated();
 
       // User can create their own document on first sign-in
-      allow create: if isAuthenticated() &&
-                      isOwner(userId) &&
-                      request.resource.data.uid == request.auth.uid;
+      // Admin can create any user document (for scoring system)
+      allow create: if (isAuthenticated() &&
+                       isOwner(userId) &&
+                       request.resource.data.uid == request.auth.uid) ||
+                       isAdmin();
 
       // User can update their own username
       // Admin can update any user's username, isAdmin status, totalPoints, seasonMedals, or scorerMatches

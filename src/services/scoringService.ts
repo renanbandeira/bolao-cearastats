@@ -101,17 +101,12 @@ export async function setMatchResultsAndCalculatePoints(
 
     const updateData: any = {
       lastUpdated: serverTimestamp(),
+      totalPoints: increment(pointsDiff),
+      scorerMatches: increment(scorerDiff),
     };
 
-    if (pointsDiff !== 0) {
-      updateData.totalPoints = increment(pointsDiff);
-    }
-    if (scorerDiff !== 0) {
-      updateData.scorerMatches = increment(scorerDiff);
-    }
-
     const userRef = doc(db, 'users', userId);
-    batch.update(userRef, updateData);
+    batch.set(userRef, updateData, { merge: true });
   }
 
   // 6. Commit all updates
@@ -214,17 +209,12 @@ export async function recalculateMatchPoints(matchId: string): Promise<void> {
 
     const updateData: any = {
       lastUpdated: serverTimestamp(),
+      totalPoints: increment(pointsDiff),
+      scorerMatches: increment(scorerDiff),
     };
 
-    if (pointsDiff !== 0) {
-      updateData.totalPoints = increment(pointsDiff);
-    }
-    if (scorerDiff !== 0) {
-      updateData.scorerMatches = increment(scorerDiff);
-    }
-
     const userRef = doc(db, 'users', userId);
-    batch.update(userRef, updateData);
+    batch.set(userRef, updateData, { merge: true });
   }
 
   // 6. Commit all updates
