@@ -69,34 +69,42 @@ export function calculatePoints(
 
   // 2. Check player prediction (case insensitive)
   if (bet.predictedPlayer && (result.actualScorers || result.actualAssists)) {
-    const predictedPlayerLower = bet.predictedPlayer.toLowerCase().trim();
+    const predictedPlayerLower = sanitizePlayerName(bet.predictedPlayer).toLowerCase().trim();
 
-    const playerScored = result.actualScorers?.some(
-      scorer => sanitizePlayerName(scorer) === predictedPlayerLower
-    );
-    const playerAssisted = result.actualAssists?.some(
-      assist => sanitizePlayerName(assist) === predictedPlayerLower
-    );
+    // Count how many times the player scored
+    const scoredCount = result.actualScorers?.filter(
+      scorer => sanitizePlayerName(scorer).toLowerCase().trim() === predictedPlayerLower
+    ).length || 0;
+
+    // Count how many times the player assisted
+    const assistedCount = result.actualAssists?.filter(
+      assist => sanitizePlayerName(assist).toLowerCase().trim() === predictedPlayerLower
+    ).length || 0;
+
     const isOnlyOne = playerCounts.get(predictedPlayerLower) === 1;
 
-    if (playerScored) {
+    if (scoredCount > 0) {
+      const pointsPerGoal = isOnlyOne ? 4 : 2;
+      const totalScorerPoints = pointsPerGoal * scoredCount;
+
       if (isOnlyOne) {
-        breakdown.matchedScorerAlone = 4;
-        points += 4;
+        breakdown.matchedScorerAlone = totalScorerPoints;
       } else {
-        breakdown.matchedScorer = 2;
-        points += 2;
+        breakdown.matchedScorer = totalScorerPoints;
       }
+      points += totalScorerPoints;
     }
 
-    if (playerAssisted) {
+    if (assistedCount > 0) {
+      const pointsPerAssist = isOnlyOne ? 2 : 1;
+      const totalAssistPoints = pointsPerAssist * assistedCount;
+
       if (isOnlyOne) {
-        breakdown.matchedAssistAlone = 2;
-        points += 2;
+        breakdown.matchedAssistAlone = totalAssistPoints;
       } else {
-        breakdown.matchedAssist = 1;
-        points += 1;
+        breakdown.matchedAssist = totalAssistPoints;
       }
+      points += totalAssistPoints;
     }
   }
 
