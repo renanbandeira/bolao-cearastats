@@ -157,6 +157,11 @@ export function MyBetsPage() {
                             Gols: {bet.match.actualScorers.join(', ')}
                           </p>
                         )}
+                        {bet.match.actualAssists && bet.match.actualAssists.length > 0 && (
+                          <p className="text-sm text-gray-700 mt-1">
+                            Assistências: {bet.match.actualAssists.join(', ')}
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <div className="p-4 bg-gray-100 rounded-lg flex items-center justify-center">
