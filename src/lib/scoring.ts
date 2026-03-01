@@ -175,7 +175,10 @@ export function sanitizePlayerName(playerName: string): string {
     "juan": "Juan Alano",
     "juan allano": "Juan Alano",
     "mlk": "Melk",
-    "Wendel": "Wendel Silva"
+    "wendel": "Wendel Silva",
+    "wendell": "Wendel Silva",
+    "ws": "Wendel Silva",
+    "wendell silva": "Wendel Silva",
   }
   return Object.keys(playerNameDictionary).includes(playerName.toLocaleLowerCase().trim()) ? playerNameDictionary[playerName.toLocaleLowerCase().trim() as keyof typeof playerNameDictionary] as string : playerName;
 }
